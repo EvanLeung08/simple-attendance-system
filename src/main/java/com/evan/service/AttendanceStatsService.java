@@ -25,7 +25,7 @@ public class AttendanceStatsService {
         this.attendanceRepository = attendanceRepository;
     }
 
-    public Map<String, Map<String, Integer>> calculateAttendanceStats(int year, int month) {
+    public Map<String, Map<String, String>> calculateAttendanceStats(int year, int month) {
         YearMonth yearMonth = YearMonth.of(year, month);
 
 
@@ -33,11 +33,11 @@ public class AttendanceStatsService {
                 .filter(record -> record.getDate() != null && yearMonth.equals(YearMonth.from(record.getDate())))
                 .collect(Collectors.groupingBy(AttendanceRecord::getUsername));
 
-        Map<String, Map<String, Integer>> attendanceStats = new HashMap<>();
+        Map<String, Map<String, String>> attendanceStats = new HashMap<>();
         for (Map.Entry<String, List<AttendanceRecord>> entry : recordsByUser.entrySet()) {
             String username = entry.getKey();
             List<AttendanceRecord> userRecords = entry.getValue();
-            Map<String, Integer> stats = new HashMap<>();
+            Map<String, String> stats = new HashMap<>();
             int attendedDays = 0;
             int leaveDays = 0;
 
@@ -52,9 +52,10 @@ public class AttendanceStatsService {
             }
 
             int requiredDays =  (int) ((WorkdayCalculator.countWorkdays(year, month)-leaveDays) * workdayPercentage);
-            stats.put("attendedDays", attendedDays);
-            stats.put("requiredDays", requiredDays);
-            stats.put("totalLeaveDays",leaveDays);
+            stats.put("attendedDays", String.valueOf(attendedDays));
+            stats.put("requiredDays", String.valueOf(requiredDays));
+            stats.put("totalLeaveDays", String.valueOf(leaveDays));
+            stats.put("complianceRatio", (int) ((attendedDays / (double) requiredDays) * 100)+"%");
             attendanceStats.put(username, stats);
         }
 

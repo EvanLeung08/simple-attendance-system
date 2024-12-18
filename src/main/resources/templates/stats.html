@@ -112,6 +112,7 @@
             <th scope="col">Attended Days</th>
             <th scope="col">Required Days</th>
             <th scope="col">Total Leave Days</th>
+            <th scope="col">Compliance Ratio</th>
         </tr>
         </thead>
         <tbody>
@@ -120,6 +121,7 @@
             <td th:text="${entry.value.attendedDays}">Attended Days</td>
             <td th:text="${entry.value.requiredDays}">Required Days</td>
             <td th:text="${entry.value.totalLeaveDays}">Total Leave Days</td>
+            <td th:text="${entry.value.complianceRatio}">Compliance Ratio</td>
         </tr>
         </tbody>
     </table>

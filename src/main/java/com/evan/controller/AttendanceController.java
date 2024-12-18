@@ -55,23 +55,7 @@ public class AttendanceController {
         return "redirect:/stats";
     }
 
-/*    @GetMapping("/stats")
-    public String showStats(Model model, @RequestParam(required = false) Integer year, @RequestParam(required = false) Integer month) {
-        if (year == null || month == null) {
-            year = YearMonth.now().getYear();
-            month = YearMonth.now().getMonthValue();
-        }
-        YearMonth yearMonth = YearMonth.of(year, month);
-        model.addAttribute("currentYearMonth", yearMonth);
 
-        Map<String, Map<String, Integer>> stats = attendanceStatsService.calculateAttendanceStats(year, month);
-        model.addAttribute("stats", stats);
-
-        List<AttendanceRecord> records = attendanceService.findRecordsByYearMonth(yearMonth);
-        model.addAttribute("records", records);
-
-        return "stats";
-    }*/
 
     @GetMapping("/stats")
     public String showStats(Model model, @RequestParam(required = false) Integer year, @RequestParam(required = false) Integer month) {
@@ -82,7 +66,7 @@ public class AttendanceController {
         YearMonth yearMonth = YearMonth.of(year, month);
         model.addAttribute("currentYearMonth", yearMonth);
 
-        Map<String, Map<String, Integer>> stats = attendanceStatsService.calculateAttendanceStats(year, month);
+        Map<String, Map<String, String>> stats = attendanceStatsService.calculateAttendanceStats(year, month);
         model.addAttribute("stats", stats);
 
 
