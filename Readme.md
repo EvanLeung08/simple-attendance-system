@@ -9,7 +9,7 @@
 # 操作界面
 
 ## 输入界面
-[!输入界面](doc/input.png)
+![输入界面](doc/input.png)
 
 ## 统计界面
-[!统计界面](doc/stats.png)
+![统计界面](doc/stats.png)
