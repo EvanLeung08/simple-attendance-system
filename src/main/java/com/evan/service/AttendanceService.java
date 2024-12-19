@@ -1,15 +1,15 @@
 package com.evan.service;
 
-
 import com.evan.model.AttendanceRecord;
 import com.evan.repository.AttendanceRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.List;
-import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 public class AttendanceService {
@@ -21,16 +21,22 @@ public class AttendanceService {
         attendanceRepository.save(record);
     }
 
-    public List<AttendanceRecord> findAllRecords() {
-        return attendanceRepository.findAll();
+    public Page<AttendanceRecord> findRecordsByYearMonthAndTeam(YearMonth yearMonth, String team, Pageable pageable) {
+        if (team == null || team.isEmpty()) {
+            return attendanceRepository.findAllByDateBetweenOrderByDateDesc(yearMonth.atDay(1), yearMonth.atEndOfMonth(), pageable);
+        } else {
+            return attendanceRepository.findAllByDateBetweenAndTeamOrderByDateDesc(yearMonth.atDay(1), yearMonth.atEndOfMonth(), team, pageable);
+        }
     }
-    public List<AttendanceRecord> findRecordsByYearMonth(YearMonth yearMonth) {
-        return attendanceRepository.findAllByDateBetween(yearMonth.atDay(1), yearMonth.atEndOfMonth());
+
+    public List<String> findAllTeams() {
+        return attendanceRepository.findAll().stream()
+                .map(AttendanceRecord::getTeam)
+                .distinct()
+                .collect(Collectors.toList());
     }
-    public Map<String, Integer> findLeaveDaysByYearMonth(int year, int month) {
-        YearMonth yearMonth = YearMonth.of(year, month);
-        LocalDate startOfMonth = yearMonth.atDay(1);
-        LocalDate endOfMonth = yearMonth.atEndOfMonth();
-        return attendanceRepository.findLeaveDaysByYearMonth(startOfMonth, endOfMonth);
+
+    public void deleteAttendanceRecord(Long id) {
+        attendanceRepository.deleteById(id);
     }
 }

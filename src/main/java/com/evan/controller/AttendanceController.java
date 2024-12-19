@@ -1,11 +1,11 @@
 package com.evan.controller;
 
-
 import com.evan.model.AttendanceRecord;
-import com.evan.repository.AttendanceRepository;
 import com.evan.service.AttendanceService;
 import com.evan.service.AttendanceStatsService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -29,9 +29,6 @@ public class AttendanceController {
     @Autowired
     private AttendanceStatsService attendanceStatsService;
 
-    @Autowired
-    private AttendanceRepository attendanceRepository;
-
     @GetMapping("/")
     public String showAttendanceForm(Model model) {
         model.addAttribute("attendanceRecord", new AttendanceRecord());
@@ -42,23 +39,26 @@ public class AttendanceController {
     @PostMapping("/submit")
     public String submitAttendance(@RequestParam("username") String username,
                                    @RequestParam("daysOfWeek") List<String> daysOfWeek,
-                                   @RequestParam(name = "leaveDays", defaultValue = "0") int leaveDays, // 设置默认值为0
-                                   @RequestParam("date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
+                                   @RequestParam(name = "leaveDays", defaultValue = "0") int leaveDays,
+                                   @RequestParam("date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
+                                   @RequestParam("team") String team) {
         AttendanceRecord record = new AttendanceRecord();
         record.setUsername(username);
         record.setDate(date);
-        if (daysOfWeek != null && !daysOfWeek.isEmpty()) {
-            record.setDaysOfWeek(daysOfWeek.stream().collect(Collectors.joining(", ")));
-        }
-        record.setLeaveDays(leaveDays); // Set the leave days
+        record.setDaysOfWeek(String.join(", ", daysOfWeek));
+        record.setLeaveDays(leaveDays);
+        record.setTeam(team);
         attendanceService.saveAttendanceRecord(record);
         return "redirect:/stats";
     }
 
-
-
     @GetMapping("/stats")
-    public String showStats(Model model, @RequestParam(required = false) Integer year, @RequestParam(required = false) Integer month) {
+    public String showStats(Model model,
+                            @RequestParam(required = false) Integer year,
+                            @RequestParam(required = false) Integer month,
+                            @RequestParam(defaultValue = "0") int page,
+                            @RequestParam(defaultValue = "0") int statsPage,
+                            @RequestParam(required = false) String team) {
         if (year == null || month == null) {
             year = YearMonth.now().getYear();
             month = YearMonth.now().getMonthValue();
@@ -66,14 +66,26 @@ public class AttendanceController {
         YearMonth yearMonth = YearMonth.of(year, month);
         model.addAttribute("currentYearMonth", yearMonth);
 
-        Map<String, Map<String, String>> stats = attendanceStatsService.calculateAttendanceStats(year, month);
+        Map<String, Map<String, String>> stats = attendanceStatsService.calculateAttendanceStats(year, month, team);
         model.addAttribute("stats", stats);
 
+        Page<AttendanceRecord> recordsPage = attendanceService.findRecordsByYearMonthAndTeam(yearMonth, team, PageRequest.of(page, 5));
+        model.addAttribute("recordsPage", recordsPage);
 
-        List<AttendanceRecord> records = attendanceService.findRecordsByYearMonth(yearMonth);
-        model.addAttribute("records", records);
+        Page<Map.Entry<String, Map<String, String>>> statsPageResult = attendanceStatsService.getPaginatedStats(stats, PageRequest.of(statsPage, 5));
+        model.addAttribute("statsPage", statsPageResult);
+
+        List<String> teams = attendanceService.findAllTeams();
+        model.addAttribute("teams", teams);
+
+        Map<String, Double> teamComplianceRates = attendanceStatsService.calculateTeamComplianceRates(year, month);
+        model.addAttribute("teamComplianceRates", teamComplianceRates);
 
         return "stats";
     }
-
+    @GetMapping("/delete")
+    public String deleteAttendanceRecord(@RequestParam("id") Long id) {
+        attendanceService.deleteAttendanceRecord(id);
+        return "redirect:/stats";
+    }
 }

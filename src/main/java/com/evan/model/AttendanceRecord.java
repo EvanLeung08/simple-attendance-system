@@ -1,10 +1,10 @@
 package com.evan.model;
 
-
 import javax.persistence.*;
 import java.time.LocalDate;
-import java.util.List;
-
+import java.time.LocalDateTime;
+import java.time.temporal.WeekFields;
+import java.util.Locale;
 
 @Entity
 public class AttendanceRecord {
@@ -13,10 +13,16 @@ public class AttendanceRecord {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String username;
-    private LocalDate date; // 使用 LocalDate 类型
-    private int leaveDays; // Add leave days field
-    private String daysOfWeek; // 存储选中的星期，以逗号分隔
+    private LocalDate date;
+    private int leaveDays;
+    private String daysOfWeek;
+    private String team;
+    private LocalDateTime createdAt;
 
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+    }
 
     // Getters and Setters
     public Long getId() {
@@ -43,8 +49,6 @@ public class AttendanceRecord {
         this.date = date;
     }
 
-
-
     public String getDaysOfWeek() {
         return daysOfWeek;
     }
@@ -59,5 +63,26 @@ public class AttendanceRecord {
 
     public void setLeaveDays(int leaveDays) {
         this.leaveDays = leaveDays;
+    }
+
+    public String getTeam() {
+        return team;
+    }
+
+    public void setTeam(String team) {
+        this.team = team;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public int getWeekOfMonth() {
+        WeekFields weekFields = WeekFields.of(Locale.getDefault());
+        return date.get(weekFields.weekOfMonth());
     }
 }
