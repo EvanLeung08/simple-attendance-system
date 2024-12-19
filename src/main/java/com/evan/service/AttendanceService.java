@@ -39,4 +39,12 @@ public class AttendanceService {
     public void deleteAttendanceRecord(Long id) {
         attendanceRepository.deleteById(id);
     }
+
+    public List<AttendanceRecord> findAllRecords() {
+        return attendanceRepository.findAll();
+    }
+
+    public AttendanceRecord findRecordById(Long id) {
+        return attendanceRepository.findById(id).orElse(null);
+    }
 }
