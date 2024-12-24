@@ -15,3 +15,4 @@
 
 ## 统计界面
 ![统计界面](doc/stats.png)
+![统计界面](doc/stats2.png)
